@@ -4,7 +4,7 @@
   "description": "This Bundle provides classes to cache handlers (memcache, files)",
   "keywords": ["tool", "cache", "memcache", "file", "ttl"],
   "homepage": "http://pigroupe.github.io/cmf-sfynx/",
-  "license": "MIT",
+  "license": "LGPL-3.0+",
   "authors": [
     {
       "name": "Etienne de Longeaux",
@@ -17,7 +17,7 @@
   ],
 
   "require": {
-    "symfony/framework-bundle": "~2.3"
+    "symfony/framework-bundle": "~2.8|~3.0"
   },
 
   "require-dev": {
@@ -39,7 +39,7 @@
 
   "extra": {
     "branch-alias": {
-      "dev-master": "2.3-dev"
+      "dev-master": "2.x-dev"
     }
   }
 }

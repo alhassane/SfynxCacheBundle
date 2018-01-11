@@ -13,8 +13,8 @@
  */
 namespace Sfynx\CacheBundle\Manager;
 
-use Sfynx\CacheBundle\Builder\CacheInterface;
-use Sfynx\CacheBundle\Builder\CacheClientInterface;
+use Sfynx\CacheBundle\Manager\Generalisation\CacheInterface;
+use Sfynx\CacheBundle\Manager\Generalisation\ClientInterface;
 
 /**
  * cache factory.
@@ -26,138 +26,102 @@ use Sfynx\CacheBundle\Builder\CacheClientInterface;
  */
 class CacheFactory implements CacheInterface
 {
-    public $dic = false;
-
+    protected $options = null;
     protected $client = null;
     protected $safe = false;
 
     /**
      * Prep the cache
      * 
-     * @param CacheClientInterface $client Optional cache object/service
+     * @param CacheInterface $client Optional cache object/service
+     * @param mixed $options Option values
      * @access public
      * @return void
      */
-    public function __construct( CacheClientInterface $client = null )
+    public function __construct(ClientInterface $client = null, $options = null)
     {
-        if ( !empty( $client ) )
-        {
-            if ( is_object( $client ) && ( $client instanceof CacheClientInterface ) )
-                $this->client = $client;
-            else
-            {
-                throw new \Exception( 'Invalid Cache Client Interface' );
-            }
-        }
+        $this->client = $client;
     }
 
     /**
-     * Inject a dependency injection container (optional)
-     * 
-     * @param mixed $dic The container
-     * @access public
-     * @return void
+     * {@inheritdoc}
      */
-    public function setContainer( $dic )
+    public function setOptions($options)
     {
-        $this->dic = $dic;
+        $this->client->setOptions($options);
+        return $this;
     }
 
     /**
-     * Inject a cache client interface to interact with a custom cache service
-     * 
-     * @param CacheClientInterface $client The client object or service
-     * @access public
-     * @return void
-     */
-    public function setClient( CacheClientInterface $client )
-    {
-        if ( is_object( $client ) && ( $client instanceof CacheClientInterface ) )
-            $this->client = $client;
-        else
-        {
-            throw new \Exception( 'Invalid Cache Client Interface' );
-        }
-    }
-    
-    /**
-     * Return service client
-     *
-     * @param CacheClientInterface $client The client object or service
-     * @access public
-     * @return void
+     * {@inheritdoc}
      */
     public function getClient()
     {
-            return $this->client;
-    }    
+        return $this->client;
+    }
 
     /**
-     * Retrieve a value from the cache using the provided key
-     * 
-     * @param string $key The unique key identifying the data to be retrieved.
-     * @access public
-     * @return mixed The requested data, or false if there is an error
+     * {@inheritdoc}
      */
-    public function get( $key )
+    public function get($key)
     {
-        if ( $this->isSafe() && !empty( $key ) )
-        {
-            return $this->client->get( $key );
+        if ($this->isSafe($key)) {
+            return $this->client->get($key);
         }
 
         return false;
     }
 
     /**
-     * Add a key/value to the cache
-     * 
-     * @param string $key A unique key to identify the data you want to store
-     * @param string $value The value you want to store in the cache
-     * @param int $ttl Optional: Lifetime of the data (default: 300 seconds - five minutes)
-     * @access public
-     * @return mixed Whatever the CacheClientObject returns, or false.
+     * {@inheritdoc}
      */
-    public function set( $key, $value, $ttl = 300 )
+    public function set($key, $value, $ttl = 300 )
     {
-        if ( $this->isSafe() && !empty( $key ) )
-        {
-            return $this->client->set( $key, $value, $ttl );
+        if ($this->isSafe($key)) {
+            return $this->client->set($key, $value, $ttl);
         }
 
         return false;
     }
 
     /**
-     * Checks if the cache is in a usable state
-     * 
-     * @access public
-     * @return boolean True if the cache is usable, otherwise false
+     * {@inheritdoc}
      */
-    public function isSafe()
+    public function clear($key)
     {
-        if ( $this->client instanceof CacheClientInterface )
-        {
-            return $this->client->isSafe();
+        if ($this->isSafe($key)) {
+            return $this->client->clear($key);
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function isSafe($key = null)
+    {
+        if (!empty($key) && $this->client instanceof ClientInterface) {
+            return $this->client->isSafe($key);
         }
 
         return $this->safe;
     }
-    
-    
+
     /**
-     * Delete a value to the cache under a unique key
-     *
-     * @param string $key Unique key to identify the data
-     * @access public
-     * @return boolean
+     * {@inheritdoc}
      */
-    public function clear($key)
+    public function fresh($key, $value = null)
     {
-        if ( $this->isSafe() && !empty( $key ) )
-        {
-            return $this->client->clear($key);
+        if ($this->isSafe($key)) {
+            return $this->client->fresh($key, $value);
         }
-    }    
-    
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setPath($path)
+    {
+        $this->client->setPath($path);
+        return $this;
+    }
 }
